@@ -22,6 +22,7 @@ LIVE_API_URL = "https://besttime.app/api/v1/forecasts/live"
 LOG_FILE = "marktwaarde_live_log.csv"
 FIELDNAMES = [
     "timestamp", "venue_id", "venue_name", "city", "venue_type",
+    "venue_lat", "venue_lng",
     "live_available", "live_busyness", "normal_busyness", "busyness_delta",
 ]
 
@@ -97,6 +98,8 @@ def poll_venue(venue, api_key, timestamp):
         "venue_name": venue["venue_name"],
         "city": venue["city"],
         "venue_type": venue["venue_type"],
+        "venue_lat": venue["venue_lat"],
+        "venue_lng": venue["venue_lng"],
         "live_available": live_avail,
         "live_busyness": analysis.get("venue_live_busyness") if live_avail else None,
         "normal_busyness": analysis.get("venue_forecasted_busyness") if live_avail else None,
