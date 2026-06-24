@@ -1,37 +1,36 @@
 name: MarktWaarde Live Monitor
 
 on:
-  schedule:
-    # Hourly at :23, 06:00–19:00 UTC (14 runs/day).
-    # Covers ~08:00–20:00 Belgian local in summer (CEST, UTC+2) and
-    # ~07:00–20:00 in winter (CET, UTC+1). Cron is UTC-only and does NOT
-    # follow daylight saving, so this window drifts by one hour across the
-    # spring/autumn clock changes — harmless for busyness tracking.
-    # :23 (not :00) dodges the congested top-of-hour slot.
-    - cron: '23 6-19 * * *'
-  workflow_dispatch:          # lets you trigger a run by hand from the Actions tab
+  # Triggered externally by cron-job.org for punctual scheduling. cron-job.org
+  # sends a repository_dispatch API call with event_type "poll" on its schedule.
+  # GitHub's own `schedule:` cron is intentionally NOT used (it runs late or
+  # drops occurrences). repository_dispatch is also exempt from the 60-day
+  # auto-disable that applies to scheduled workflows.
+  repository_dispatch:
+    types: [poll]
+  workflow_dispatch:          # manual "Run workflow" button in the Actions tab
 
 permissions:
-  contents: write             # required so the job can commit the updated log back
+  contents: write             # lets the job commit the updated log back
 
 concurrency:
   group: marktwaarde-monitor
-  cancel-in-progress: false   # queue runs instead of overlapping them (avoids push clashes)
+  cancel-in-progress: false   # queue runs instead of overlapping them
 
 jobs:
   poll:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
       - name: Install dependencies
-        run: pip install requests          # the monitor only needs requests (no folium)
+        run: pip install requests          # the monitor only needs requests
 
       - name: Run monitor
         env:
