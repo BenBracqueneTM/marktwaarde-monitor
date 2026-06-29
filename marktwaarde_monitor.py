@@ -92,6 +92,11 @@ def poll_venue(venue, api_key, timestamp):
     analysis = data.get("analysis", {})
     live_avail = analysis.get("venue_live_busyness_available", False)
 
+    # Capture every field the response offers, regardless of live availability.
+    # venue_forecasted_busyness (the "expected" busyness for the current hour) is
+    # returned in the same response even when there's no live signal, so we record
+    # it unconditionally rather than discarding it on no-live rows. .get() yields
+    # None when a field is genuinely absent (e.g. venue closed at this hour).
     return {
         "timestamp": timestamp,
         "venue_id": venue["venue_id"],
@@ -101,9 +106,9 @@ def poll_venue(venue, api_key, timestamp):
         "venue_lat": venue["venue_lat"],
         "venue_lng": venue["venue_lng"],
         "live_available": live_avail,
-        "live_busyness": analysis.get("venue_live_busyness") if live_avail else None,
-        "normal_busyness": analysis.get("venue_forecasted_busyness") if live_avail else None,
-        "busyness_delta": analysis.get("venue_live_forecasted_delta") if live_avail else None,
+        "live_busyness": analysis.get("venue_live_busyness"),
+        "normal_busyness": analysis.get("venue_forecasted_busyness"),
+        "busyness_delta": analysis.get("venue_live_forecasted_delta"),
     }
 
 
